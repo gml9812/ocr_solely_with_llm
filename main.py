@@ -10,6 +10,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from pydantic import BaseModel, Field
 from src.services.mappers import to_response
 from src.api.schemas.responses import DocumentAnalysisResponse
+from langchain_core.messages import HumanMessage
 
 
 app = FastAPI()
@@ -32,17 +33,13 @@ async def process_document(
     keywords: List[str] = Form(...)
 ):
     try:
+        logger.info(f"Received file: {file.filename}, Content-Type: {file.content_type}, Size: {file.size} bytes")
         file_validator.validate(file)
-
-        logger.info("Document analysis res")
         
         results = await document_processor.analyze_document(
             image_bytes=await file.read(),
             keywords=keywords
         )
-
-        logger.info(f"Document analysis results: {results.__dict__}")
-
         
         return to_response(results)
         
